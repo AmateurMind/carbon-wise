@@ -43,7 +43,8 @@ const ComparisonBar = ({
       <div className="flex justify-between text-sm gap-4">
         <span className="font-medium text-gray-700">{label}</span>
         <span className="font-bold text-gray-900">
-          {pct.toFixed(0)}% <span className="font-normal text-gray-500">of {formatKg(benchmarkKg)}</span>
+          {pct.toFixed(0)}%{' '}
+          <span className="font-normal text-gray-500">of {formatKg(benchmarkKg)}</span>
         </span>
       </div>
       <div

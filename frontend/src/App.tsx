@@ -95,11 +95,7 @@ function AppContent() {
                 />
               </li>
               <li>
-                <NavLink
-                  label="History"
-                  active={step === 'history'}
-                  onClick={handleHistoryClick}
-                />
+                <NavLink label="History" active={step === 'history'} onClick={handleHistoryClick} />
               </li>
             </ul>
           </nav>
@@ -128,11 +124,15 @@ function AppContent() {
               </div>
               <div className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-emerald-100">Focused</p>
-                <p className="mt-1 text-sm text-white">See the one category worth attacking first.</p>
+                <p className="mt-1 text-sm text-white">
+                  See the one category worth attacking first.
+                </p>
               </div>
               <div className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-emerald-100">Actionable</p>
-                <p className="mt-1 text-sm text-white">Get a practical plan and save your progress.</p>
+                <p className="mt-1 text-sm text-white">
+                  Get a practical plan and save your progress.
+                </p>
               </div>
             </div>
             <div className="flex justify-center gap-6 mt-6 text-sm text-emerald-100 flex-wrap">
@@ -214,8 +214,8 @@ function AppContent() {
             <div>
               <h2 className="text-sm font-semibold text-gray-700 mb-2">Why Carbon wise</h2>
               <p className="text-xs text-gray-500">
-                Carbon wise is designed as a lightweight climate coach for people who want
-                clarity, momentum, and realistic next steps without spreadsheet-heavy dashboards.
+                Carbon wise is designed as a lightweight climate coach for people who want clarity,
+                momentum, and realistic next steps without spreadsheet-heavy dashboards.
               </p>
             </div>
           </div>

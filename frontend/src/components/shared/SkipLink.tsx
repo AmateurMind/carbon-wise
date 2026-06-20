@@ -16,6 +16,6 @@ export const SkipLink = () => (
       transition-all duration-150
     "
   >
-    next 
+    next
   </a>
 );

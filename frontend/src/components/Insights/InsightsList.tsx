@@ -144,7 +144,11 @@ export const InsightsList = ({ insightsResponse }: InsightsListProps) => {
           aria-label="Save this carbon footprint snapshot to your history"
         >
           <span aria-hidden="true">Save</span>
-          {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved to History' : 'Save to History'}
+          {saveStatus === 'saving'
+            ? 'Saving...'
+            : saveStatus === 'saved'
+              ? 'Saved to History'
+              : 'Save to History'}
         </button>
       </div>
     </section>
