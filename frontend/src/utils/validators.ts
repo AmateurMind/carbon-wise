@@ -30,7 +30,15 @@ export const carbonInputSchema = z.object({
 export type CarbonInputForm = z.infer<typeof carbonInputSchema>;
 
 /**
+ * Return the first field-level validation message from a Zod field error map.
+ */
+export const getFirstFieldError = (
+  fieldErrors: Record<string, string[] | undefined>,
+  field: string
+): string | undefined => fieldErrors[field]?.[0];
+
+/**
  * Validate carbon input data. Returns Zod SafeParseResult.
- * Use result.success to check validity and result.error.flatten() for field errors.
+ * Use result.success to check validity and result.error.flatten().fieldErrors for field errors.
  */
 export const validateCarbonInput = (data: unknown) => carbonInputSchema.safeParse(data);

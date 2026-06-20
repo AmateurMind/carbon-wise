@@ -14,7 +14,11 @@ import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { useCarbonStore } from '../../store/carbonStore';
 import type { CarbonInput } from '../../types';
 import { getDeviceId } from '../../utils/formatters';
-import { carbonInputSchema, type CarbonInputForm } from '../../utils/validators';
+import {
+  carbonInputSchema,
+  getFirstFieldError,
+  type CarbonInputForm,
+} from '../../utils/validators';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 type FormErrors = Partial<Record<keyof CarbonInputForm, string>>;
@@ -34,6 +38,25 @@ const initialValues: CarbonInputForm = {
   consumption_level: 'medium',
   device_id: getDeviceId(),
 };
+
+const dietOptions = [
+  {
+    value: 'meat_heavy',
+    label: '🥩 Meat-heavy',
+    desc: 'Meat with most meals (>100g/day)',
+  },
+  {
+    value: 'meat_medium',
+    label: '🍗 Meat-moderate',
+    desc: 'Meat a few times a week',
+  },
+  {
+    value: 'vegetarian',
+    label: '🥚 Vegetarian',
+    desc: 'No meat, but dairy & eggs ok',
+  },
+  { value: 'vegan', label: '🌱 Vegan', desc: 'Fully plant-based diet' },
+] as const;
 
 const InputField = ({
   id,
@@ -146,8 +169,7 @@ export const CarbonForm = () => {
     const result = carbonInputSchema.safeParse(partial);
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
-      const msg = fieldErrors[field]?.[0];
-      setErrors(prev => ({ ...prev, [field]: msg ?? undefined }));
+      setErrors(prev => ({ ...prev, [field]: getFirstFieldError(fieldErrors, field) }));
     } else {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -169,10 +191,9 @@ export const CarbonForm = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // Mark all fields touched
     const allTouched = Object.keys(values).reduce(
-      (acc, k) => ({ ...acc, [k]: true }),
-      {} as Record<string, boolean>
+      (acc, key) => ({ ...acc, [key]: true }),
+      {} as Partial<Record<keyof CarbonInputForm, boolean>>
     );
     setTouched(allTouched);
 
@@ -180,8 +201,9 @@ export const CarbonForm = () => {
     if (!result.success) {
       const flat = result.error.flatten().fieldErrors;
       const newErrors: FormErrors = {};
-      for (const [k, msgs] of Object.entries(flat)) {
-        if (msgs?.[0]) newErrors[k as keyof CarbonInputForm] = msgs[0];
+      for (const key of Object.keys(flat)) {
+        const message = getFirstFieldError(flat, key);
+        if (message) newErrors[key as keyof CarbonInputForm] = message;
       }
       setErrors(newErrors);
       return;
@@ -354,7 +376,6 @@ export const CarbonForm = () => {
           description="Your dietary pattern and consumption habits account for a significant share of emissions."
         />
         <div className="space-y-6">
-          {/* Diet Type — radio group */}
           <fieldset>
             <legend className="text-sm font-medium text-gray-700 mb-3">
               Diet Type
@@ -363,26 +384,7 @@ export const CarbonForm = () => {
               </span>
             </legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(
-                [
-                  {
-                    value: 'meat_heavy',
-                    label: '🥩 Meat-heavy',
-                    desc: 'Meat with most meals (>100g/day)',
-                  },
-                  {
-                    value: 'meat_medium',
-                    label: '🍗 Meat-moderate',
-                    desc: 'Meat a few times a week',
-                  },
-                  {
-                    value: 'vegetarian',
-                    label: '🥚 Vegetarian',
-                    desc: 'No meat, but dairy & eggs ok',
-                  },
-                  { value: 'vegan', label: '🌱 Vegan', desc: 'Fully plant-based diet' },
-                ] as const
-              ).map(({ value, label, desc }) => (
+              {dietOptions.map(({ value, label, desc }) => (
                 <label
                   key={value}
                   htmlFor={`diet-type-${value}`}
@@ -415,7 +417,6 @@ export const CarbonForm = () => {
             </div>
           </fieldset>
 
-          {/* Consumption Level */}
           <div className="space-y-2">
             <label htmlFor="consumption_level" className="block text-sm font-medium text-gray-700">
               Shopping & Consumption Level
@@ -447,9 +448,6 @@ export const CarbonForm = () => {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Error Banner                                                      */}
-      {/* ---------------------------------------------------------------- */}
       {storeError && (
         <div
           role="alert"
@@ -466,9 +464,6 @@ export const CarbonForm = () => {
         </div>
       )}
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Submit Button                                                     */}
-      {/* ---------------------------------------------------------------- */}
       <div className="flex justify-center">
         <button
           type="submit"
