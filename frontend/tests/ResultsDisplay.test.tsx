@@ -35,6 +35,15 @@ const mockResult: CarbonResult = {
   device_id: 'test-device-001',
 };
 
+const lowImpactResult: CarbonResult = {
+  total_kg: 1800,
+  breakdown: { home: 700, diet: 500, transport: 400, consumption: 200 },
+  vs_global_average_pct: 45,
+  vs_paris_target_pct: 90,
+  ranked_categories: [{ category: 'home', kg: 700, percentage: 38.9 }],
+  device_id: 'test-device-002',
+};
+
 describe('ResultsDisplay', () => {
   beforeEach(() => {
     mockFetchInsights.mockClear();
@@ -115,5 +124,19 @@ describe('ResultsDisplay', () => {
     render(<ResultsDisplay result={mockResult} />);
     const section = screen.getByRole('region', { name: /your annual carbon footprint/i });
     expect(section).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('shows below-benchmark messaging for low-impact users', () => {
+    render(<ResultsDisplay result={lowImpactResult} />);
+    expect(screen.getByText(/already below/i)).toBeInTheDocument();
+    expect(screen.getByText(/on track/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/you are below/i).length).toBeGreaterThan(0);
+  });
+
+  it('shows loading state while insights are being generated', () => {
+    mockIsLoading = true;
+    render(<ResultsDisplay result={mockResult} />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByLabelText(/generating insights/i)).toBeInTheDocument();
   });
 });

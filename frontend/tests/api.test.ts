@@ -52,7 +52,7 @@ function mockFetchSuccess(data: unknown) {
     ok: true,
     status: 200,
     json: async () => data,
-  } as Response);
+  } as unknown as Response);
 }
 
 function mockFetchError(status: number, detail = 'Internal Server Error') {
@@ -60,7 +60,7 @@ function mockFetchError(status: number, detail = 'Internal Server Error') {
     ok: false,
     status,
     json: async () => ({ detail }),
-  } as Response);
+  } as unknown as Response);
 }
 
 // --------------------------------------------------------------------------
@@ -96,6 +96,17 @@ describe('apiClient.calculateFootprint', () => {
   it('throws Error on 500 response', async () => {
     mockFetchError(500, 'Internal Server Error');
     await expect(apiClient.calculateFootprint(mockInput)).rejects.toThrow('Internal Server Error');
+  });
+
+  it('falls back to status code when error response is not JSON', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => {
+        throw new Error('invalid json');
+      },
+    } as unknown as Response);
+    await expect(apiClient.calculateFootprint(mockInput)).rejects.toThrow('HTTP 502');
   });
 });
 

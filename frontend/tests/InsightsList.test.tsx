@@ -3,15 +3,21 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { InsightsList } from '../src/components/Insights/InsightsList';
 import type { InsightsResponse } from '../src/types';
 
 const mockSaveEntry = vi.fn();
+let mockSaveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
+let mockSaveMessage: string | null = null;
 
 vi.mock('../src/store/carbonStore', () => ({
   useCarbonStore: (selector: (s: Record<string, unknown>) => unknown) =>
-    selector({ saveEntry: mockSaveEntry, saveStatus: 'idle', saveMessage: null }),
+    selector({
+      saveEntry: mockSaveEntry,
+      saveStatus: mockSaveStatus,
+      saveMessage: mockSaveMessage,
+    }),
 }));
 
 const mockInsightsGemini: InsightsResponse = {
@@ -48,6 +54,12 @@ const mockInsightsRules: InsightsResponse = {
 };
 
 describe('InsightsList', () => {
+  beforeEach(() => {
+    mockSaveStatus = 'idle';
+    mockSaveMessage = null;
+    mockSaveEntry.mockClear();
+  });
+
   it('renders all 3 insights', () => {
     render(<InsightsList insightsResponse={mockInsightsGemini} />);
     const articles = screen.getAllByRole('article');
@@ -78,8 +90,7 @@ describe('InsightsList', () => {
 
   it('displays total potential saving', () => {
     render(<InsightsList insightsResponse={mockInsightsGemini} />);
-    expect(screen.getByText(/total potential annual saving/i)).toBeInTheDocument();
-    // 1860 kg → "1.9t"
+    expect(screen.getByText(/total potential/i)).toBeInTheDocument();
     expect(screen.getByText(/1\.9t/)).toBeInTheDocument();
   });
 
@@ -110,5 +121,28 @@ describe('InsightsList', () => {
   it('renders the monthly momentum summary', () => {
     render(<InsightsList insightsResponse={mockInsightsGemini} />);
     expect(screen.getByText(/monthly momentum/i)).toBeInTheDocument();
+  });
+
+  it('shows saved confirmation state', () => {
+    mockSaveStatus = 'saved';
+    mockSaveMessage = 'Saved to your history.';
+    render(<InsightsList insightsResponse={mockInsightsGemini} />);
+    expect(screen.getByText(/saved to your history/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save.*history/i })).toHaveTextContent(/saved to history/i);
+  });
+
+  it('shows saving state and disables the button', () => {
+    mockSaveStatus = 'saving';
+    mockSaveMessage = 'Saving this snapshot to your history...';
+    render(<InsightsList insightsResponse={mockInsightsGemini} />);
+    expect(screen.getByText(/saving this snapshot/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save.*history/i })).toBeDisabled();
+  });
+
+  it('shows save error state', () => {
+    mockSaveStatus = 'error';
+    mockSaveMessage = 'Could not save this snapshot right now.';
+    render(<InsightsList insightsResponse={mockInsightsGemini} />);
+    expect(screen.getByText(/could not save this snapshot right now/i)).toBeInTheDocument();
   });
 });

@@ -16,6 +16,6 @@ export const SkipLink = () => (
       transition-all duration-150
     "
   >
-    Skip to main content
+    next 
   </a>
 );
