@@ -58,6 +58,95 @@ const dietOptions = [
   { value: 'vegan', label: '🌱 Vegan', desc: 'Fully plant-based diet' },
 ] as const;
 
+interface FieldDef {
+  id: keyof CarbonInputForm;
+  label: string;
+  unit?: string;
+  helper?: string;
+  step?: string | number;
+  min?: number;
+  max?: number;
+  transform?: (v: number) => number;
+}
+
+const transportFields: FieldDef[] = [
+  {
+    id: 'transport_km_car_petrol',
+    label: 'Petrol Car',
+    unit: 'km/year',
+    helper: 'Annual kilometres driven in a petrol or hybrid car',
+  },
+  {
+    id: 'transport_km_car_diesel',
+    label: 'Diesel Car',
+    unit: 'km/year',
+    helper: 'Annual kilometres driven in a diesel car',
+  },
+  {
+    id: 'transport_km_car_electric',
+    label: 'Electric Vehicle',
+    unit: 'km/year',
+    helper: 'Annual kilometres driven in a battery electric car',
+  },
+  {
+    id: 'transport_km_bus',
+    label: 'Bus',
+    unit: 'km/year',
+    helper: 'Annual kilometres travelled by bus or coach',
+  },
+  {
+    id: 'transport_km_train',
+    label: 'Train / Metro',
+    unit: 'km/year',
+    helper: 'Annual kilometres by train, metro, or tram',
+  },
+  {
+    id: 'flights_short_haul',
+    label: 'Short-Haul Flights',
+    unit: 'flights/year',
+    helper: 'Flights under 3 hours (e.g. London to Paris)',
+    step: 1,
+    min: 0,
+    max: 50,
+    transform: Math.round,
+  },
+  {
+    id: 'flights_long_haul',
+    label: 'Long-Haul Flights',
+    unit: 'flights/year',
+    helper: 'Flights over 3 hours (e.g. London to New York)',
+    step: 1,
+    min: 0,
+    max: 20,
+    transform: Math.round,
+  },
+];
+
+const homeFields: FieldDef[] = [
+  {
+    id: 'home_electricity_kwh',
+    label: 'Electricity',
+    unit: 'kWh/year',
+    helper: 'Check your energy bills — UK average is ~3,700 kWh/year',
+  },
+  {
+    id: 'home_gas_kwh',
+    label: 'Natural Gas',
+    unit: 'kWh/year',
+    helper: 'UK average is ~12,000 kWh/year for heating and cooking',
+  },
+  {
+    id: 'household_size',
+    label: 'Household Size',
+    unit: 'people',
+    helper: 'Number of people sharing your home (home emissions split equally)',
+    step: 1,
+    min: 1,
+    max: 10,
+    transform: Math.round,
+  },
+];
+
 const InputField = ({
   id,
   label,
@@ -233,82 +322,22 @@ export const CarbonForm = () => {
           description="Enter your annual travel distances and number of flights."
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InputField
-            id="transport_km_car_petrol"
-            label="Petrol Car"
-            value={values.transport_km_car_petrol}
-            unit="km/year"
-            helper="Annual kilometres driven in a petrol or hybrid car"
-            error={errors.transport_km_car_petrol}
-            onChange={v => updateField('transport_km_car_petrol', v)}
-            onBlur={() => handleBlur('transport_km_car_petrol')}
-          />
-          <InputField
-            id="transport_km_car_diesel"
-            label="Diesel Car"
-            value={values.transport_km_car_diesel}
-            unit="km/year"
-            helper="Annual kilometres driven in a diesel car"
-            error={errors.transport_km_car_diesel}
-            onChange={v => updateField('transport_km_car_diesel', v)}
-            onBlur={() => handleBlur('transport_km_car_diesel')}
-          />
-          <InputField
-            id="transport_km_car_electric"
-            label="Electric Vehicle"
-            value={values.transport_km_car_electric}
-            unit="km/year"
-            helper="Annual kilometres driven in a battery electric car"
-            error={errors.transport_km_car_electric}
-            onChange={v => updateField('transport_km_car_electric', v)}
-            onBlur={() => handleBlur('transport_km_car_electric')}
-          />
-          <InputField
-            id="transport_km_bus"
-            label="Bus"
-            value={values.transport_km_bus}
-            unit="km/year"
-            helper="Annual kilometres travelled by bus or coach"
-            error={errors.transport_km_bus}
-            onChange={v => updateField('transport_km_bus', v)}
-            onBlur={() => handleBlur('transport_km_bus')}
-          />
-          <InputField
-            id="transport_km_train"
-            label="Train / Metro"
-            value={values.transport_km_train}
-            unit="km/year"
-            helper="Annual kilometres by train, metro, or tram"
-            error={errors.transport_km_train}
-            onChange={v => updateField('transport_km_train', v)}
-            onBlur={() => handleBlur('transport_km_train')}
-          />
-          <InputField
-            id="flights_short_haul"
-            label="Short-Haul Flights"
-            value={values.flights_short_haul}
-            unit="flights/year"
-            helper="Flights under 3 hours (e.g. London to Paris)"
-            error={errors.flights_short_haul}
-            step={1}
-            min={0}
-            max={50}
-            onChange={v => updateField('flights_short_haul', Math.round(v))}
-            onBlur={() => handleBlur('flights_short_haul')}
-          />
-          <InputField
-            id="flights_long_haul"
-            label="Long-Haul Flights"
-            value={values.flights_long_haul}
-            unit="flights/year"
-            helper="Flights over 3 hours (e.g. London to New York)"
-            error={errors.flights_long_haul}
-            step={1}
-            min={0}
-            max={20}
-            onChange={v => updateField('flights_long_haul', Math.round(v))}
-            onBlur={() => handleBlur('flights_long_haul')}
-          />
+          {transportFields.map(field => (
+            <InputField
+              key={field.id}
+              id={field.id}
+              label={field.label}
+              value={values[field.id] as number}
+              unit={field.unit}
+              helper={field.helper}
+              error={errors[field.id]}
+              step={field.step}
+              min={field.min}
+              max={field.max}
+              onChange={v => updateField(field.id, (field.transform?.(v) ?? v) as any)}
+              onBlur={() => handleBlur(field.id)}
+            />
+          ))}
         </div>
       </section>
 
@@ -326,39 +355,22 @@ export const CarbonForm = () => {
           description="Your household's annual energy consumption. Costs are split equally across household members."
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InputField
-            id="home_electricity_kwh"
-            label="Electricity"
-            value={values.home_electricity_kwh}
-            unit="kWh/year"
-            helper="Check your energy bills — UK average is ~3,700 kWh/year"
-            error={errors.home_electricity_kwh}
-            onChange={v => updateField('home_electricity_kwh', v)}
-            onBlur={() => handleBlur('home_electricity_kwh')}
-          />
-          <InputField
-            id="home_gas_kwh"
-            label="Natural Gas"
-            value={values.home_gas_kwh}
-            unit="kWh/year"
-            helper="UK average is ~12,000 kWh/year for heating and cooking"
-            error={errors.home_gas_kwh}
-            onChange={v => updateField('home_gas_kwh', v)}
-            onBlur={() => handleBlur('home_gas_kwh')}
-          />
-          <InputField
-            id="household_size"
-            label="Household Size"
-            value={values.household_size}
-            unit="people"
-            helper="Number of people sharing your home (home emissions split equally)"
-            error={errors.household_size}
-            step={1}
-            min={1}
-            max={10}
-            onChange={v => updateField('household_size', Math.round(v))}
-            onBlur={() => handleBlur('household_size')}
-          />
+          {homeFields.map(field => (
+            <InputField
+              key={field.id}
+              id={field.id}
+              label={field.label}
+              value={values[field.id] as number}
+              unit={field.unit}
+              helper={field.helper}
+              error={errors[field.id]}
+              step={field.step}
+              min={field.min}
+              max={field.max}
+              onChange={v => updateField(field.id, (field.transform?.(v) ?? v) as any)}
+              onBlur={() => handleBlur(field.id)}
+            />
+          ))}
         </div>
       </section>
 

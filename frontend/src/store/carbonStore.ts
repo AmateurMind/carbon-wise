@@ -24,6 +24,7 @@ import type {
   SaveStatus,
 } from '../types';
 import { getDeviceId } from '../utils/formatters';
+import { withLoadingState } from '../utils/storeHelpers';
 
 interface CarbonState {
   inputs: Partial<CarbonInput>;
@@ -71,32 +72,29 @@ export const useCarbonStore = create<CarbonState>((set, get) => ({
       saveStatus: 'idle',
       saveMessage: null,
     });
-    try {
-      const result = await apiClient.calculateFootprint(inputs);
-      set({ result, inputs, step: 'results', isCalculating: false });
-    } catch (err) {
-      set({
-        error: err instanceof Error ? err.message : 'Failed to calculate footprint',
-        isCalculating: false,
-      });
-    }
+    const result = await withLoadingState(
+      set,
+      () => apiClient.calculateFootprint(inputs),
+      'isCalculating',
+      'Failed to calculate footprint'
+    );
+    if (result) set({ result, inputs, step: 'results' });
   },
 
   fetchInsights: async () => {
     const { result } = get();
     if (!result) return;
 
-    set({ isLoadingInsights: true, error: null });
-    try {
-      const deviceId = getDeviceId();
-      const insights = await apiClient.getInsights(result, deviceId);
-      set({ insights, isLoadingInsights: false });
+    const deviceId = getDeviceId();
+    const insights = await withLoadingState(
+      set,
+      () => apiClient.getInsights(result, deviceId),
+      'isLoadingInsights',
+      'Failed to fetch insights'
+    );
+    if (insights) {
+      set({ insights });
       await get().saveEntry();
-    } catch (err) {
-      set({
-        error: err instanceof Error ? err.message : 'Failed to fetch insights',
-        isLoadingInsights: false,
-      });
     }
   },
 
@@ -120,17 +118,14 @@ export const useCarbonStore = create<CarbonState>((set, get) => ({
   },
 
   fetchHistory: async () => {
-    set({ isLoadingHistory: true, error: null });
-    try {
-      const deviceId = getDeviceId();
-      const history = await apiClient.getHistory(deviceId);
-      set({ history, isLoadingHistory: false });
-    } catch (err) {
-      set({
-        error: err instanceof Error ? err.message : 'Failed to load history',
-        isLoadingHistory: false,
-      });
-    }
+    const deviceId = getDeviceId();
+    const history = await withLoadingState(
+      set,
+      () => apiClient.getHistory(deviceId),
+      'isLoadingHistory',
+      'Failed to load history'
+    );
+    if (history) set({ history });
   },
 
   setStep: step => set({ step }),

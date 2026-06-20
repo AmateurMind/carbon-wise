@@ -1,12 +1,11 @@
 /**
  * useHistory — hook for fetching and displaying carbon history.
  */
-import { useCarbonStore } from '../store/carbonStore';
 
-export const useHistory = () => {
-  const fetchHistory = useCarbonStore(s => s.fetchHistory);
-  const history = useCarbonStore(s => s.history);
-  const isLoadingHistory = useCarbonStore(s => s.isLoadingHistory);
+import { useStoreSlice } from './useStoreSlice';
 
-  return { fetchHistory, history, isLoadingHistory };
-};
+export const useHistory = useStoreSlice(s => ({
+  fetchHistory: s.fetchHistory,
+  history: s.history,
+  isLoadingHistory: s.isLoadingHistory,
+}));
