@@ -1,12 +1,12 @@
 """
-Carbon Footprint Awareness Platform — FastAPI application entry point.
+Carbon Compass - FastAPI application entry point.
 
 Architecture:
-  - SecurityHeadersMiddleware: OWASP security headers on every response
-  - CORSMiddleware: Restricted to localhost in development
-  - slowapi rate limiting: Per-IP request throttling
+  - SecurityHeadersMiddleware: OWASP-style security headers
+  - CORSMiddleware: local development origins
+  - slowapi rate limiting: per-IP throttling
   - Router mounts: /api/health, /api/calculate, /api/insights, /api/entries
-  - SPA fallback: Serves React build for all non-API paths
+  - SPA fallback: serves the compiled React app for non-API paths
 """
 
 from __future__ import annotations
@@ -32,30 +32,27 @@ from app.routes import calculate, entries, health, insights
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan handler — configure logging on startup."""
+    """Configure logging during startup and shutdown."""
     settings = get_settings()
     logging.basicConfig(
         level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
-        format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
     )
     logging.getLogger(__name__).info(
-        "Carbon Platform starting up (env=%s, gemini=%s, firestore=%s)",
+        "Carbon Compass starting up (env=%s, gemini=%s, firestore=%s)",
         settings.ENVIRONMENT,
         settings.USE_GEMINI,
         settings.USE_FIRESTORE,
     )
     yield
-    logging.getLogger(__name__).info("Carbon Platform shutting down")
+    logging.getLogger(__name__).info("Carbon Compass shutting down")
 
 
-# ---------------------------------------------------------------------------
-# FastAPI application
-# ---------------------------------------------------------------------------
 app = FastAPI(
-    title="Carbon Footprint Awareness Platform",
+    title="Carbon Compass API",
     description=(
-        "Understand, track, and reduce your personal carbon footprint "
-        "with AI-powered insights from Google Gemini."
+        "Measure personal emissions, prioritise the biggest source, "
+        "and generate a realistic reduction plan."
     ),
     version="1.0.0",
     docs_url="/api/docs",
@@ -64,14 +61,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ---------------------------------------------------------------------------
-# Middleware (order matters — outer middleware wraps inner)
-# ---------------------------------------------------------------------------
-
-# 1. Security headers (outermost — applied to every response)
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 2. CORS — allow the Vite dev server in development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
@@ -80,23 +71,14 @@ app.add_middleware(
     max_age=3600,
 )
 
-# ---------------------------------------------------------------------------
-# Rate limiting
-# ---------------------------------------------------------------------------
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
-# ---------------------------------------------------------------------------
-# API Routers
-# ---------------------------------------------------------------------------
 app.include_router(health.router, prefix="/api")
 app.include_router(calculate.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(entries.router, prefix="/api")
 
-# ---------------------------------------------------------------------------
-# Serve compiled React SPA (production only — frontend build must exist)
-# ---------------------------------------------------------------------------
 _static_path = os.path.join(os.path.dirname(__file__), "..", "static")
 _assets_path = os.path.join(_static_path, "assets")
 
@@ -105,5 +87,5 @@ if os.path.isdir(_assets_path):
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa(full_path: str) -> FileResponse:
-        """Fall-through route: serve the React SPA index.html for all non-API paths."""
+        """Serve the React SPA for all non-API routes."""
         return FileResponse(os.path.join(_static_path, "index.html"))

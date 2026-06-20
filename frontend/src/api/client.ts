@@ -1,5 +1,5 @@
 /**
- * API client for the Carbon Footprint Awareness Platform.
+ * API client for Carbon Compass.
  *
  * All functions throw Error on non-2xx responses.
  * Types match backend Pydantic models exactly.

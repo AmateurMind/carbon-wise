@@ -1,5 +1,5 @@
 /**
- * Zustand store for the Carbon Footprint Awareness Platform.
+ * Zustand store for Carbon Compass.
  *
  * State shape:
  *   inputs            - Partial CarbonInput being edited in the form

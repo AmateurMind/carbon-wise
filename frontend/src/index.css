@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Carbon Footprint Awareness Platform — Global Styles
+   Carbon Compass - Global Styles
    Uses Tailwind CSS as the utility foundation.
    Custom classes below handle skip links, focus rings, and typography.
    ========================================================================== */
@@ -10,9 +10,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --------------------------------------------------------------------------
-   Base resets & typography
-   -------------------------------------------------------------------------- */
 @layer base {
   *,
   *::before,
@@ -32,7 +29,6 @@
     margin: 0;
   }
 
-  /* Respect user's reduced motion preference */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -44,17 +40,12 @@
     }
   }
 
-  /* High-contrast focus rings for keyboard navigation */
   :focus-visible {
     outline: 2px solid #16a34a;
     outline-offset: 2px;
   }
 }
 
-/* --------------------------------------------------------------------------
-   Skip Link
-   WCAG 2.1 Success Criterion 2.4.1 — Bypass Blocks
-   -------------------------------------------------------------------------- */
 @layer components {
   .skip-link {
     @apply sr-only;
@@ -67,18 +58,12 @@
   }
 }
 
-/* --------------------------------------------------------------------------
-   Tabular numbers for all numeric displays
-   -------------------------------------------------------------------------- */
 @layer utilities {
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* --------------------------------------------------------------------------
-   Recharts — ensure no SVG elements interfere with focus management
-   -------------------------------------------------------------------------- */
 .recharts-wrapper {
   outline: none !important;
 }
@@ -87,16 +72,10 @@
   overflow: visible;
 }
 
-/* --------------------------------------------------------------------------
-   Smooth scrolling target offset (so sticky header doesn't cover content)
-   -------------------------------------------------------------------------- */
 #main-content {
   scroll-margin-top: 72px;
 }
 
-/* --------------------------------------------------------------------------
-   Print styles — strip chrome, show only content
-   -------------------------------------------------------------------------- */
 @media print {
   header,
   footer,

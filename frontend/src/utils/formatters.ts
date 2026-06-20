@@ -1,5 +1,5 @@
 /**
- * Formatting utilities for the Carbon Footprint Awareness Platform.
+ * Formatting utilities for Carbon Compass.
  */
 
 /**
